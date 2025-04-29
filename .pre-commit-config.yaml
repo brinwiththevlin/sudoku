@@ -1,0 +1,64 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0  # Use the latest tag or version
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0  # Use the latest version of Black
+    hooks:
+      - id: black
+        args: ["--line-length=120"]
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.0
+    hooks:
+      - id: isort
+        args: ["--profile=black"]
+
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.0
+    hooks:
+      - id: ruff
+        args:
+        - "--fix"
+        - "--line-length=120"
+
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.6.0
+    hooks:
+      - id: interrogate
+        exclude: ^(docs/|tests/|build/)
+        args:
+          - "--verbose"
+          - "--fail-under=70"  # Set the documentation coverage threshold to 70%
+          - "--ignore-magic"  # Ignore all dunder methods like __init__
+          - "--ignore-init-method"  # (Optional) Ignore __init__ method specifically
+
+  - repo: local
+    hooks:
+      - id: run-unittest
+        name: Run Unittest
+        entry: bash -c "source $(conda info --base)/etc/profile.d/conda.sh && conda activate boot_dev && python -m unittest discover -s tests -p 'test_*.py'"
+        language: system
+        pass_filenames: false  # Prevent pre-commit from passing file paths
+        types: [python]
+
+      - id: coverage-check
+        name: Run Coverage
+        entry: bash -c "source $(conda info --base)/etc/profile.d/conda.sh && conda activate boot_dev && coverage run --source=src -m unittest discover -s tests -p 'test_*.py' && coverage report --fail-under=70"
+        language: system
+        pass_filenames: false  # Prevent pre-commit from passing file paths
+        types: [python]
+
+      - id: pyright
+        name: Pyright Type Checking
+        entry: pyright
+        language: system
+        exclude: ^(tests/)
+        pass_filenames: false  # Prevent pre-commit from passing file paths
+        types: [python]

@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: sudoku
+Version: 0.0.1
+Summary: asteroid game
+Author-email: Your Name <your.email@example.com>
+Project-URL: homepage, https://github.com/brinwiththevlin/sudoku
+Project-URL: repository, https://github.com/brinwiththevlin/sudoku
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Provides-Extra: lint
+Requires-Dist: flake8; extra == "lint"
+Requires-Dist: ruff; extra == "lint"
+Requires-Dist: black; extra == "lint"
+Requires-Dist: isort; extra == "lint"
+Requires-Dist: pyright; extra == "lint"
+Requires-Dist: mypy; extra == "lint"
+Provides-Extra: test
+Requires-Dist: coverage; extra == "test"
+Provides-Extra: doc
+Requires-Dist: sphinx; extra == "doc"
+Provides-Extra: build
+Requires-Dist: build[virtualenv]==1.0.3; extra == "build"
+Provides-Extra: dev
+Requires-Dist: tox; extra == "dev"
+Requires-Dist: pre-commit; extra == "dev"
+Requires-Dist: interrogate; extra == "dev"
+Requires-Dist: sudoku[lint]; extra == "dev"
+Requires-Dist: sudoku[test]; extra == "dev"
+Requires-Dist: sudoku[doc]; extra == "dev"
+Requires-Dist: sudoku[build]; extra == "dev"
