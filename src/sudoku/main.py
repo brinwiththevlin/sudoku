@@ -6,7 +6,9 @@ import sys
 import pygame
 from pygame import display
 
+from sudoku.board import Cell
 from sudoku.constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from sudoku.groups import drawable
 
 # Set up basic configuration
 logger = logging.getLogger(__name__)
@@ -16,40 +18,32 @@ logger.info("hello world")
 
 
 def main() -> None:
-    """Driver function for asteroids game."""
-    logger.info("Starting asteroids")
+    """Driver function for sudoku game."""
+    logger.info("Starting sudoku")
 
     _ = pygame.init()
-    clock = pygame.time.Clock()
-    dt = 0
+    # clock = pygame.time.Clock()
 
-    screen = display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+
+    _ = Cell(10, 10, 0, 45, 45)
+    # set title of window
+    display.set_caption("Sudoku Solver")
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
 
-        screen.fill("white")
+        _ = screen.fill("magenta")
 
-        for thing in updatable:
-            thing.update(dt)
+        for d in drawable:
+            d.draw(screen)
 
-        for thing in asteroids:
-            for s in shots:
-                if s.is_colliding(thing):
-                    s.kill()
-                    thing.split()
 
-            if player.is_colliding(thing):
-                logging.info("Game over!")
-                sys.exit(0)
 
-        for thing in drawable:
-            thing.draw(screen)
 
         display.flip()
-        dt = clock.tick() / 1000
 
 
 if __name__ == "__main__":
