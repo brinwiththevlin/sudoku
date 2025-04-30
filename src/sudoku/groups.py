@@ -1,9 +1,12 @@
 """Sprite groups for the game."""
 
+from typing import TYPE_CHECKING
+
 from pygame.sprite import Group
 
-from sudoku.game_sprites import GameSprite
+if TYPE_CHECKING:
+    from sudoku.game_sprites import GameSprite
 
-# use Group[GameSprite], not AbstractGroup
-drawable: Group[GameSprite] = Group()
-updatable: Group[GameSprite] = Group()
+drawable: "Group[GameSprite]" = Group()
+updatable: "Group[GameSprite]" = Group()
+selectable: "Group[GameSprite]" = Group()

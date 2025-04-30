@@ -1,5 +1,3 @@
  #!/bin/bash
 
- cd src/sudoku
-
- python main.py
+ python src/sudoku/main.py
