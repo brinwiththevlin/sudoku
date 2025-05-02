@@ -7,6 +7,7 @@ import pygame
 from pygame import display
 
 from sudoku.board import Board
+from sudoku.cell import Cell
 from sudoku.constants import SCREEN_HEIGHT, SCREEN_WIDTH, XMARGIN, YMARGIN
 from sudoku.groups import drawable, selectable
 
@@ -43,12 +44,16 @@ def main() -> None:  # noqa: C901, PLR0912
                 return
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = event.pos
+                [s.unselect() for s in selectable]
                 for s in selectable:
-                    s.unselect()
                     if s.rect.collidepoint(*pos):
                         s.select()
+                        if type(s) is Cell:
+                            board.highlight(s.value)
+                        break
+                else:
+                    board.highlight(0)
             if event.type == pygame.KEYDOWN:
-                logger.debug(event.key)
                 if pygame.K_0 <= event.key <= pygame.K_9:
                     digit = event.key - pygame.K_0
                     for s in selectable:
@@ -59,7 +64,7 @@ def main() -> None:  # noqa: C901, PLR0912
                         if s.selected:
                             s.update(0)
 
-        _ = screen.fill("magenta")
+        _ = screen.fill("green" if board.solved(logger) else (200, 10, 50))
 
         for d in drawable:
             d.draw(screen)

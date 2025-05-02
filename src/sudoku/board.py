@@ -1,90 +1,14 @@
-"""Board and Cell classes."""
+"""Board class."""
 
+import logging
 from typing import final, override
 
 import pygame
-from pygame.font import Font
 
+from sudoku.cell import Cell
 from sudoku.constants import CELL_SIZE
 from sudoku.game_sprites import GameSprite
-from sudoku.groups import drawable, selectable, updatable
-
-
-@final
-class Cell(GameSprite):
-    """Cell class for sudoku board."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        x: int,
-        y: int,
-        width: int,
-        height: int,
-        value: int | None = None,
-        font: Font | None = None,
-    ) -> None:
-        """Initialize the cell with its position and value."""
-        if font is None:
-            font = pygame.font.Font(pygame.font.get_default_font(), 36)
-        super().__init__()
-        updatable.add(self)
-        selectable.add(self)
-        self.x: int = x
-        self.y: int = y
-        self.value: int | None = value
-        self.width: int = width
-        self.height: int = height
-        self.font = font
-        self.locked = False
-
-        self.image = pygame.Surface((width, height), flags=pygame.SRCALPHA)
-        _ = self.image.fill("white")
-
-        self.rect = self.image.get_rect(topleft=(x, y))
-
-    @override
-    def draw(self, screen: pygame.Surface) -> None:
-        """Draw cell on the screen.
-
-        draws the cell on the screen, with a magin around the board
-
-        Args:
-            screen: game window
-        """
-        color = (0, 0, 0) if self.locked else (0, 0, 200)
-        _ = self.image.fill("light grey") if self.selected else self.image.fill("white")
-        _ = screen.blit(self.image, self.rect)
-        _ = pygame.draw.rect(screen, "grey", self.rect, width=3)
-        text_surf = self.font.render(
-            str(self.value if self.value not in (0, None) else ""), True, color  # noqa: FBT003
-        )
-        # center it in the cell`s rect
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        _ = screen.blit(text_surf, text_rect)
-
-    @override
-    def update(self, value: int) -> None:
-        """Update the value of the cell.
-
-        Args:
-            value: new value
-        """
-        self.value = value
-
-    @override
-    def select(self) -> None:
-        """Set selected to True."""
-        if not self.locked:
-            self.selected = True
-
-    @override
-    def unselect(self) -> None:
-        """Set selected to False."""
-        self.selected = False
-
-    def lock(self):
-        """Set pre-entered value as locked."""
-        self.locked = True
+from sudoku.groups import drawable
 
 
 @final
@@ -105,7 +29,6 @@ class Board(GameSprite):
         self.x = x
         self.y = y
         self.image = pygame.Surface((CELL_SIZE * 9, CELL_SIZE * 9))
-        _ = self.image.fill("white")
         self.rect = self.image.get_rect(topleft=(x, y))
         self.cells = self.__create_cells()
 
@@ -153,6 +76,16 @@ class Board(GameSprite):
         ]
         return cells
 
+    def highlight(self, value: int) -> None:
+        """Highlight all cells with the same value.
+
+        Args:
+            value: value to highlight
+        """
+        for row in self.cells:
+            for cell in row:
+                cell.highlight = value != 0 and cell.value == value
+
     def load(self, values: list[str]) -> None:
         """Load a sudoku board from a 2D list of values.
 
@@ -164,3 +97,76 @@ class Board(GameSprite):
                 if v.isnumeric():
                     self.cells[i][j].update(int(v))
                     self.cells[i][j].lock()
+
+    def solved(self, logger: logging.Logger) -> bool:
+        """Checks if board is solved.
+
+        Returns:
+            true if solved
+        """
+        for row in self.cells:
+            for cell in row:
+                cell.valid = True
+                cell.reason = False
+        fault = False
+        block_sets: list[set[int]] = [set() for _ in range(9)]
+        for i in range(9):
+            row_set: set[int] = set()
+            col_set: set[int] = set()
+
+            for j in range(9):
+                current_block: set[int] = block_sets[3 * (i // 3) + (j // 3)]
+                if self.cells[i][j].value in row_set or self.cells[i][j].value in current_block:
+                    fault = True
+                    logger.debug(f"Invalid cell {i}, {j}")
+                    self.invalidate(i, j)
+
+                if self.cells[i][j].value != 0:
+                    row_set.add(self.cells[i][j].value)
+                    block_sets[3 * (i // 3) + (j // 3)].add(self.cells[i][j].value)
+
+                if self.cells[j][i].value in col_set:
+                    fault = True
+                    self.invalidate(j, i)
+                    logger.debug(f"Invalid cell {j}, {i}")
+
+                if self.cells[j][i].value != 0:
+                    col_set.add(self.cells[j][i].value)
+
+            if len(row_set) != 9 or len(col_set) != 9:  # noqa: PLR2004
+                fault = True
+
+        return not any(len(s) != 9 for s in block_sets) and not fault  # noqa: PLR2004
+
+    def invalidate(self, i: int, j: int) -> None:
+        """Invalidate a cell and all cells with the same value.
+
+        Args:
+            i: row index
+            j: column index
+        """
+        bad_val = self.cells[i][j].value
+        if bad_val in (None, 0):
+            return
+
+        # Mark the original cell
+        self.cells[i][j].valid = False
+        self.cells[i][j].reason = True
+
+        for r in range(9):
+            for c in range(9):
+                # skip the original
+                if (r, c) == (i, j):
+                    continue
+
+                cell = self.cells[r][c]
+                if cell.value != bad_val:
+                    continue
+
+                same_row = r == i
+                same_col = c == j
+                same_block = r // 3 == i // 3 and c // 3 == j // 3
+
+                if same_row or same_col or same_block:
+                    cell.valid = False
+                    cell.reason = True
