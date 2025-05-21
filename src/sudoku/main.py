@@ -1,15 +1,12 @@
-"""Sudoku solver. lets you enter a sudoku board and watch it get solved."""
-
+"""Sudoku game."""
 import logging
-from pathlib import Path
 
 import pygame
 from pygame import display
 
-from sudoku.board import Board
-from sudoku.cell import Cell
-from sudoku.constants import SCREEN_HEIGHT, SCREEN_WIDTH, XMARGIN, YMARGIN
-from sudoku.groups import drawable, selectable
+from sudoku.constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from sudoku.screen_manager import ScreenManager
+from sudoku.screens import HomeScreen, PlayScreen
 
 # Set up basic configuration
 logger = logging.getLogger(__name__)
@@ -18,56 +15,32 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %
 logger.info("hello world")
 
 
-def main() -> None:  # noqa: C901, PLR0912
+def main() -> None:
     """Driver function for sudoku game."""
     logger.info("Starting sudoku")
 
     _ = pygame.init()
 
-    screen = display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    window = display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    manager = ScreenManager(window)
+    manager.register_screen("play", PlayScreen)
+    manager.register_screen("home", HomeScreen)
 
-    board = Board(XMARGIN, YMARGIN)
-    # if puzzle.txt exists at project root load it
-    if Path("puzzle.txt").exists():
-        with Path("puzzle.txt").open() as f:
-            lines = f.readlines()
-            board.load(lines)
+    # TODO(brinhasavlin): replace this with home screen when it is ready
+    manager.switch_to("play", {"file_name": "puzzle.txt"})
     # set title of window
-    display.set_caption("Sudoku Solver")
+
+    # TODO(brinhasavlin): add a menu screen with options
+    # TODO(brinhasavlin): add a load button to load a puzzle
+    # TODO(brinhasavlin): add a save button to save a puzzle
+    # TODO(brinhasavlin): add a reset button to reset the puzzle
+    # TODO(brinhasavlin): add a solve button to solve the puzzle (add a solver function)
 
     while True:
-        for event in pygame.event.get():
-            # TODO(brinhasavlin): add multi highlighting.
-            # when user click a number highligh (not select) all of the same number
-            # TODO(brinhasavlin): add more controls (i.e. annotation, multi select)
-            if event.type == pygame.QUIT:
-                return
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = event.pos
-                [s.unselect() for s in selectable]
-                for s in selectable:
-                    if s.rect.collidepoint(*pos):
-                        s.select()
-                        if type(s) is Cell:
-                            board.highlight(s.value)
-                        break
-                else:
-                    board.highlight(0)
-            if event.type == pygame.KEYDOWN:
-                if pygame.K_0 <= event.key <= pygame.K_9:
-                    digit = event.key - pygame.K_0
-                    for s in selectable:
-                        if s.selected:
-                            s.update(digit)
-                if event.key == pygame.K_BACKSPACE:
-                    for s in selectable:
-                        if s.selected:
-                            s.update(0)
-
-        _ = screen.fill("green" if board.solved(logger) else (200, 10, 50))
-
-        for d in drawable:
-            d.draw(screen)
+        # TODO(brinhasavlin): when do we switch screens? that would be an event?
+        manager.handle_events()
+        manager.update(0)
+        manager.draw()
 
         display.flip()
 

@@ -1,21 +1,22 @@
 """Board class."""
 
 import logging
+from collections.abc import Generator
 from typing import final, override
 
 import pygame
+from pygame.font import Font
 
 from sudoku.cell import Cell
 from sudoku.constants import CELL_SIZE
 from sudoku.game_sprites import GameSprite
-from sudoku.groups import drawable
 
 
 @final
 class Board(GameSprite):
     """Board class."""
 
-    def __init__(self, x: int, y: int) -> None:
+    def __init__(self, x: int, y: int, font: Font) -> None:
         """Constructor for board class.
 
         Creates a sudoku board, 9 by 9
@@ -23,14 +24,19 @@ class Board(GameSprite):
         Args:
             x: x position of top left corner
             y: y position of top left corner
+            font: text font for all cells
         """
         super().__init__()
-        drawable.add(self)
         self.x = x
         self.y = y
+        self.font = font
         self.image = pygame.Surface((CELL_SIZE * 9, CELL_SIZE * 9))
         self.rect = self.image.get_rect(topleft=(x, y))
-        self.cells = self.__create_cells()
+        self.cells = self.__create_cells(font=font)
+
+    def __iter__(self) -> Generator[Cell, None, None]:  # noqa: D105
+        for row in self.cells:
+            yield from row
 
     @override
     def update(self) -> None:
@@ -69,9 +75,12 @@ class Board(GameSprite):
     def unselect(self) -> None:
         raise NotImplementedError
 
-    def __create_cells(self) -> list[list[Cell]]:
+    def __create_cells(self, font: Font) -> list[list[Cell]]:
         cells: list[list[Cell]] = [
-            [Cell(self.x + CELL_SIZE * col, self.y + CELL_SIZE * row, CELL_SIZE, CELL_SIZE) for col in range(9)]
+            [
+                Cell(self.x + CELL_SIZE * col, self.y + CELL_SIZE * row, CELL_SIZE, CELL_SIZE, font=font)
+                for col in range(9)
+            ]
             for row in range(9)
         ]
         return cells

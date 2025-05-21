@@ -7,7 +7,6 @@ from pygame.font import Font
 
 from sudoku.constants import INVALID_COLOR, LOCK_COLOR, USER_COLOR
 from sudoku.game_sprites import GameSprite
-from sudoku.groups import selectable, updatable
 
 
 @final
@@ -27,8 +26,6 @@ class Cell(GameSprite):
         if font is None:
             font = pygame.font.Font(pygame.font.get_default_font(), 36)
         super().__init__()
-        updatable.add(self)
-        selectable.add(self)
         self.x: int = x
         self.y: int = y
         self.value: int = value

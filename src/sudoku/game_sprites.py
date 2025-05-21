@@ -11,7 +11,7 @@ class GameSprite(pygame.sprite.Sprite, ABC):
 
     image: pygame.Surface
     rect: pygame.Rect
-    selected: bool
+    selected: bool = False
 
     @abstractmethod
     def __init__(self, *groups) -> None:
