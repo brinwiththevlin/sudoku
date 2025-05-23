@@ -11,7 +11,7 @@ from sudoku.board import Board
 from sudoku.button import Back
 from sudoku.cell import Cell
 from sudoku.constants import XMARGIN, YMARGIN
-from sudoku.screens.screen import Screen
+from sudoku.screens.screen import Screen, ScreenEvent
 
 
 @final
@@ -32,6 +32,10 @@ class PlayScreen(Screen):
         else:
             self.font = self.fonts.get(resources.get("font", ""), self.fonts["default"])
         self.board: Board = Board(XMARGIN, YMARGIN, self.font)
+        self.back = Back(self.font)
+
+        self.drawable.add(self.back)
+        self.selectable.add(self.back)
         self.drawable.add(self.board)
         for cell in self.board:
             self.drawable.add(cell)
@@ -52,18 +56,17 @@ class PlayScreen(Screen):
         display.set_caption(self.data["file_name"].removesuffix(".txt"))
 
     @override
-    def exit(self):
+    def exit(self) -> ScreenEvent:
         # TODO(brinhasavlin): store game file
-        self.board = Board(XMARGIN, YMARGIN, self.font)
+        return ScreenEvent(self.back.name, {})
 
     @override
     def update(self, *args, **kwargs) -> None:
         pass
 
     @override
-    def handle_events(self, events: list[pygame.event.Event]) -> list[str]:
+    def handle_events(self, events: list[pygame.event.Event]) -> ScreenEvent | None:
         # TODO(brinhasavlin): add more controls (i.e. annotation, multi select)
-        ret: list[str] = []
         for event in events:
             match event.type:
                 case pygame.QUIT:
@@ -77,7 +80,7 @@ class PlayScreen(Screen):
                             if type(s) is Cell:
                                 self.board.highlight(s.value)
                             if type(s) is Back:
-                                ret.append(s.name)
+                                return self.exit()
                             break
                     else:
                         self.board.highlight(0)
@@ -93,9 +96,10 @@ class PlayScreen(Screen):
                                 s.update(0)
                 case _:
                     pass
-        return ret
+        return None
 
     @override
     def draw(self) -> None:
         _ = self.window.fill("green" if self.board.solved(self.logger) else (200, 10, 50))
+        self.back.draw(self.window)
         self.board.draw(self.window)

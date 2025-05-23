@@ -13,7 +13,7 @@ class ScreenManager:
 
     def __init__(self, window: Surface) -> None:
         """Initialize the screen manager."""
-        self.screens: dict[str, Screen] = {}
+        self.screens: dict[str, type[Screen]] = {}
         self.active_screen: Screen | None = None
         self.window: Surface = window
         self.background: pygame.Color = pygame.Color("black")
@@ -32,7 +32,7 @@ class ScreenManager:
         if name in self.screens:
             raise KeyError("named window already exists")
 
-        self.screens[name] = interface(self.window, name, self.resources)
+        self.screens[name] = interface
 
     def switch_to(self, name: str, context: dict[str, Any]) -> None:
         """Switches manager to new active screen.
@@ -49,7 +49,7 @@ class ScreenManager:
         if name not in self.screens:
             raise KeyError(f"Screen {name} does not exist")
 
-        self.active_screen = self.screens[name]
+        self.active_screen = self.screens[name](self.window, name, self.resources)
         self.active_screen.enter(context)
 
     def handle_events(self) -> None:
@@ -61,10 +61,9 @@ class ScreenManager:
         evt = pygame.event.get()
         if self.active_screen is None:
             raise AttributeError("there is no active screen")
-        manager_events = self.active_screen.handle_events(evt)
-        for me in manager_events:
-            if me in self.screens:
-                self.switch_to(me, {})
+        manager_event = self.active_screen.handle_events(evt)
+        if manager_event:
+            self.switch_to(manager_event.next_screen, manager_event.context)
 
     def update(self, dt: int) -> None:
         """Update everything on the new screen.

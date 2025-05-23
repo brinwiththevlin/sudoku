@@ -32,8 +32,9 @@ class Button(GameSprite):
         self.x: int = x
         self.y: int = y
         self.font: Font = font
-        self.image: pygame.Surface = pygame.Surface((CELL_SIZE * 9, CELL_SIZE * 9))
+        self.image: pygame.Surface = pygame.Surface((CELL_SIZE * 3, CELL_SIZE * 2))
         self.rect: pygame.Rect = self.image.get_rect(topleft=(x, y))
+        self.selected: bool = False
 
     @override
     def update(self, *args, **kwargs) -> None:
@@ -62,13 +63,12 @@ class Button(GameSprite):
     def select(self) -> None:
         """Select the sprite."""
         logger.info(f"{self.name} button has been pressed")
-        self.selected: bool = True
+        self.selected = True
 
     @override
     def unselect(self) -> None:
         """Unselect the sprite."""
-        logger.warning("button selection is a one way function")
-        raise NotImplementedError
+        self.selected = False
 
 
 @final
@@ -81,4 +81,4 @@ class Back(Button):
         Args:
             font: font
         """
-        super().__init__(200, 200, "home", font)
+        super().__init__(0, 0, "home", font)

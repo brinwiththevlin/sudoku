@@ -12,6 +12,20 @@ if TYPE_CHECKING:
     from sudoku.game_sprites import GameSprite
 
 
+class ScreenEvent:
+    """Data class tochange of screen events."""
+
+    def __init__(self, screen: str, context: dict[str, Any]) -> None:
+        """Screen change event.
+
+        Args:
+            screen: next screen name
+            context: context to pass to the next screen
+        """
+        self.next_screen: str = screen
+        self.context: dict[str, Any] = context
+
+
 class Screen(ABC):
     """Base class for all game screens."""
 
@@ -56,12 +70,12 @@ class Screen(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def exit(self) -> None:
+    def exit(self) -> ScreenEvent:
         """Called upon leaving a screen."""
         raise NotImplementedError
 
     @abstractmethod
-    def handle_events(self, events: list[pygame.event.Event]) -> list[str]:
+    def handle_events(self, events: list[pygame.event.Event]) -> ScreenEvent | None:
         """Handles all events on the screen."""
         raise NotImplementedError
 
