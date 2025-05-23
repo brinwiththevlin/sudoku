@@ -27,11 +27,9 @@ def main() -> None:
     manager.register_screen("home", HomeScreen)
 
     # TODO(brinhasavlin): replace this with home screen when it is ready
-    manager.switch_to("play", {"file_name": "puzzle.txt"})
+    manager.switch_to("play", {"file_name": "puzzle.json"})
     # set title of window
 
-    # TODO(brinhasavlin): add a menu screen with options
-    # TODO(brinhasavlin): add a load button to load a puzzle
     # TODO(brinhasavlin): add a save button to save a puzzle
     # TODO(brinhasavlin): add a reset button to reset the puzzle
     # TODO(brinhasavlin): add a solve button to solve the puzzle (add a solver function)

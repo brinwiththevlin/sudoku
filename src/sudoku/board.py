@@ -44,6 +44,11 @@ class Board(GameSprite):
 
     @override
     def draw(self, screen: pygame.Surface) -> None:
+        """Draw the whole board.
+
+        Args:
+            screen: screen to draw the board on.
+        """
         _ = screen.blit(self.image, self.rect)
 
         for row in self.cells:
@@ -103,9 +108,22 @@ class Board(GameSprite):
         """
         for i, line in enumerate(values):
             for j, v in enumerate(line.split()):
-                if v.isnumeric():
-                    self.cells[i][j].update(int(v))
-                    self.cells[i][j].lock()
+                if v.isnumeric() or v.startswith("*"):
+                    self.cells[i][j].update(int(v[-1]))
+                    if v.startswith("*"):
+                        self.cells[i][j].lock()
+
+    def to_string(self) -> list[str]:
+        """Converts board state to the strings that will be added to the json file.
+
+        Returns:
+            String representation of board state
+        """
+        rows: list[str] = []
+        for row in self.cells:
+            string = " ".join([f"{'*' if cell.locked else ''}{cell.value if cell.value != 0 else '.'}" for cell in row])
+            rows.append(string)
+        return rows
 
     def solved(self, logger: logging.Logger) -> bool:
         """Checks if board is solved.

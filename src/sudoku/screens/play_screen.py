@@ -1,5 +1,7 @@
 """Play screen for sudoku app."""
 
+import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any, final, override
@@ -12,6 +14,8 @@ from sudoku.button import Back
 from sudoku.cell import Cell
 from sudoku.constants import XMARGIN, YMARGIN
 from sudoku.screens.screen import Screen, ScreenEvent
+
+logger = logging.getLogger(__name__)
 
 
 @final
@@ -44,21 +48,39 @@ class PlayScreen(Screen):
 
     @override
     def enter(self, context: dict[str, Any]):
+        """Upon entering load the puzzle.
+
+        Args:
+            context: context needed to load puzzle
+
+        Raises:
+            ValueError: if the name is not valid don't load a puzzle.
+        """
         self.data = context
         # if puzzle.txt exists at project root load it
         if type(self.data["file_name"]) is not str:
             raise ValueError("file_name, must be a string")
         if Path(self.data["file_name"]).exists():
             with Path(self.data["file_name"]).open() as f:
-                lines = f.readlines()
-                self.board.load(lines)
+                puzzle = json.load(f)
+                self.board.load(puzzle["current"])
+        else:
+            raise FileNotFoundError
         # set title of window
-        display.set_caption(self.data["file_name"].removesuffix(".txt"))
+        display.set_caption(self.data["file_name"].removesuffix(".json"))
 
     @override
-    def exit(self) -> ScreenEvent:
+    def exit(self) -> None:
+        """Exits the play screen. saves before exiting."""
         # TODO(brinhasavlin): store game file
-        return ScreenEvent(self.back.name, {})
+
+        state = self.board.to_string()
+        with Path.open(self.data["file_name"], mode="r") as f:
+            data = json.load(f)
+            data["current"] = state
+        with Path.open(self.data["file_name"], mode="w") as f:
+            logger.info(data)
+            json.dump(data, f)
 
     @override
     def update(self, *args, **kwargs) -> None:
@@ -66,6 +88,14 @@ class PlayScreen(Screen):
 
     @override
     def handle_events(self, events: list[pygame.event.Event]) -> ScreenEvent | None:
+        """Handle all game events.
+
+        Args:
+            events: list of all pygame envents
+
+        Returns:
+            a screen change event or nothing.
+        """
         # TODO(brinhasavlin): add more controls (i.e. annotation, multi select)
         for event in events:
             match event.type:
@@ -80,7 +110,7 @@ class PlayScreen(Screen):
                             if type(s) is Cell:
                                 self.board.highlight(s.value)
                             if type(s) is Back:
-                                return self.exit()
+                                return ScreenEvent(self.back.name, {})
                             break
                     else:
                         self.board.highlight(0)
@@ -100,6 +130,7 @@ class PlayScreen(Screen):
 
     @override
     def draw(self) -> None:
+        """Draw everyting for this screen."""
         _ = self.window.fill("green" if self.board.solved(self.logger) else (200, 10, 50))
         self.back.draw(self.window)
         self.board.draw(self.window)

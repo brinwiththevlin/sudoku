@@ -44,7 +44,7 @@ class HomeScreen(Screen):
         display.set_caption("Sudoku game!")
 
     @override
-    def exit(self) -> ScreenEvent:
+    def exit(self) -> None:
         logger.info(msg="leaving the main menu")
         name = ""
         for b in self.buttons:
@@ -52,7 +52,6 @@ class HomeScreen(Screen):
                 name = b.name
         if name == "":
             raise NameError("Invalid exit")
-        return ScreenEvent("load", {"mode": name})
 
     @override
     def update(self, *args, **kwargs) -> None:
@@ -70,7 +69,8 @@ class HomeScreen(Screen):
                     for s in self.selectable:
                         if s.rect.collidepoint(*pos):
                             s.select()
-                            return self.exit()
+                            if type(s) is Button:
+                                return ScreenEvent("load", {"mode": s.name})
                 case _:
                     pass
         return None

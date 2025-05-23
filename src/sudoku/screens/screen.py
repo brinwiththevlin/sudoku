@@ -70,7 +70,7 @@ class Screen(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def exit(self) -> ScreenEvent:
+    def exit(self) -> None:
         """Called upon leaving a screen."""
         raise NotImplementedError
 
