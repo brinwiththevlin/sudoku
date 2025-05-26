@@ -1,12 +1,13 @@
 """Sudoku game."""
 import logging
 
+from pathlib import Path
 import pygame
 from pygame import display
 
 from sudoku.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 from sudoku.screen_manager import ScreenManager
-from sudoku.screens import HomeScreen, PlayScreen
+from sudoku.screens import HomeScreen, PlayScreen, LoadScreen
 
 # Set up basic configuration
 logger = logging.getLogger(__name__)
@@ -25,17 +26,16 @@ def main() -> None:
     manager = ScreenManager(window)
     manager.register_screen("play", PlayScreen)
     manager.register_screen("home", HomeScreen)
+    manager.register_screen("load", LoadScreen)
 
-    # TODO(brinhasavlin): replace this with home screen when it is ready
-    manager.switch_to("play", {"file_name": "puzzle.json"})
-    # set title of window
+    puzzles_path = Path(__file__).parent.parent.parent / "puzzles"
 
-    # TODO(brinhasavlin): add a save button to save a puzzle
+    manager.switch_to("home", {})
+
     # TODO(brinhasavlin): add a reset button to reset the puzzle
     # TODO(brinhasavlin): add a solve button to solve the puzzle (add a solver function)
 
     while True:
-        # TODO(brinhasavlin): when do we switch screens? that would be an event?
         manager.handle_events()
         manager.update(0)
         manager.draw()

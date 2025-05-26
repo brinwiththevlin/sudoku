@@ -3,7 +3,7 @@
 from typing import Any
 
 import pygame
-from pygame import Surface
+from pygame import Surface, display
 
 from sudoku.screens.screen import Screen
 
@@ -20,14 +20,14 @@ class ScreenManager:
         self.resources: dict[str, Any] = {}
 
     def register_screen(self, name: str, interface: type[Screen]) -> None:
-        """Adds new screen to screens dictionary.
+        """Adds a new screen to `screens` dictionary.
 
         Args:
             name: name of new screen
             interface: Screen object
 
         Raises:
-            KeyError: raises error if name already  exists
+            KeyError: raises error if `name` already exists
         """
         if name in self.screens:
             raise KeyError("named window already exists")
@@ -35,7 +35,8 @@ class ScreenManager:
         self.screens[name] = interface
 
     def switch_to(self, name: str, context: dict[str, Any]) -> None:
-        """Switches manager to new active screen.
+
+        """Switches manager to a new active screen.
 
         Args:
             name: name of screen to switch too.
