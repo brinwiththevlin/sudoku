@@ -54,6 +54,9 @@ class Cell(GameSprite):
     def __hash__(self) -> int:
         return super().__hash__()
 
+    def __repr__(self):
+        return f"Cell({self.value})@({self.x},{self.y})"
+
     @override
     def draw(self, screen: pygame.Surface) -> None:
         """Draw cell on the screen.

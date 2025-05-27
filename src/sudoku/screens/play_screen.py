@@ -92,8 +92,7 @@ class PlayScreen(Screen):
         # Save thumbnail in binary mode
         thumb_surface = pygame.Surface((self.board.rect.width, self.board.rect.height))
         thumb_surface.fill("white")
-        self.board.x = 0
-        self.board.y = 0
+        self.board.relocate(0,0)
         self.board.draw(thumb_surface)
         pygame.image.save(thumb_surface, str(thumbnail_path))
 

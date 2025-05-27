@@ -103,7 +103,7 @@ class LoadScreen(Screen):
             if i < len(self.thumbnails) and self.thumbnails[i]:
                 # Draw the thumbnail to the left of the button
                 thumbnail = self.thumbnails[i]
-                thumbnail = pygame.transform.scale(thumbnail, (400, 400))
+                thumbnail = pygame.transform.scale(thumbnail, (250, 250))
                 thumbnail_rect = thumbnail.get_rect()
                 thumbnail_rect.midright = (button.rect.left - 10, button.rect.centery)
                 self.window.blit(thumbnail, thumbnail_rect)

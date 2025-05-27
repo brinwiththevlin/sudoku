@@ -197,3 +197,13 @@ class Board(GameSprite):
                 if same_row or same_col or same_block:
                     cell.valid = False
                     cell.reason = True
+
+    def relocate(self, x: int, y: int) -> None:
+        self.x = 0
+        self.y = 0
+        self.rect.topleft = (x, y)
+        for i in range(len(self.cells)):
+            for j in range(len(self.cells[i])):
+                self.cells[i][j].x = x + CELL_SIZE * i
+                self.cells[i][j].y = y + CELL_SIZE * j
+                self.cells[i][j].rect.topleft = (x + CELL_SIZE * i, y + CELL_SIZE * j)
