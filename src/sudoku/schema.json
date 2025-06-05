@@ -1,26 +1,58 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Generated schema for Root",
+  "title": "Sudoku Puzzle Schema",
+  "description": "Schema for defining Sudoku puzzle states",
   "type": "object",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the puzzle"
+    },
     "current": {
       "type": "array",
+      "description": "Current state of the puzzle, with '*' prefix for locked numbers",
       "items": {
-        "type": "string"
-      }
+        "type": "string",
+        "pattern": "^([*]?[0-9]\\s|\\.\\s){8}([*]?[0-9]|\\.)$"
+      },
+      "minItems": 9,
+      "maxItems": 9
     },
     "original": {
       "type": "array",
+      "description": "Original/starting state of the puzzle",
       "items": {
-        "type": "string"
-      }
+        "type": "string",
+        "pattern": "^([0-9]\\s|\\.\\s){8}([0-9]|\\.)$"
+      },
+      "minItems": 9,
+      "maxItems": 9
+    },
+    "thumbnail": {
+      "type": "string",
+      "description": "Path to the puzzle's thumbnail image",
+      "format": "uri-reference"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard", "expert"],
+      "description": "Difficulty level of the puzzle"
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the puzzle was created"
+    },
+    "lastPlayed": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the puzzle was last played"
     }
   },
   "required": [
+    "name",
     "current",
     "original"
   ],
-  "optional": [
-    "thumbnail"
-  ]
+  "additionalProperties": false
 }
