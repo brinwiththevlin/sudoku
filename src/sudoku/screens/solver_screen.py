@@ -12,7 +12,7 @@ from pygame import Surface, display
 from sudoku.board import Board
 from sudoku.button import Back, Button
 from sudoku.cell import Cell
-from sudoku.constants import XMARGIN, YMARGIN, THUMB_DIR
+from sudoku.constants import THUMB_DIR, XMARGIN, YMARGIN
 from sudoku.screens.screen import Screen, ScreenEvent
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class SolverScreen(Screen):
         self.board: Board = Board(XMARGIN, YMARGIN, self.font)
         self.back = Back(self.font)
         self.reset = Button(self.back.x, self.back.y + self.back.rect.height, "reset", self.font)
-        self.file_name  = ""
+        self.file_name = ""
 
         self.drawable.add(self.back)
         self.selectable.add(self.back)
@@ -93,15 +93,13 @@ class SolverScreen(Screen):
 
         # Save thumbnail in binary mode
         thumb_surface = pygame.Surface((self.board.rect.width, self.board.rect.height))
-        thumb_surface.fill("white")
-        self.board.relocate(0,0)
+        _ = thumb_surface.fill("white")
+        self.board.relocate(0, 0)
         self.board.draw(thumb_surface)
         pygame.image.save(thumb_surface, str(thumbnail_path))
 
     @override
     def update(self, *args, **kwargs) -> None:
-        dt = args[0]
-        
         pass
 
     @override
@@ -134,7 +132,7 @@ class SolverScreen(Screen):
                                 self.board.highlight(s.value)
                             elif type(s) is Back:
                                 return ScreenEvent(self.back.name, {})
-                            elif s.name == "reset":
+                            elif type(s) is Button and s.name == "reset":
                                 self.reset_board()
                             break
                     else:
@@ -164,6 +162,10 @@ class SolverScreen(Screen):
         self.board.draw(self.window)
 
     def reset_board(self) -> None:
+        """Reset the board so that any user entries are wiped.
+
+        reseting is one directional, this can not be reversed
+        """
         for cell in self.board:
             if not cell.locked:
                 cell.value = 0

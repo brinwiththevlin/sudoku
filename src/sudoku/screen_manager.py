@@ -3,7 +3,7 @@
 from typing import Any
 
 import pygame
-from pygame import Surface, display
+from pygame import Surface
 
 from sudoku.screens.screen import Screen
 
@@ -35,7 +35,6 @@ class ScreenManager:
         self.screens[name] = interface
 
     def switch_to(self, name: str, context: dict[str, Any]) -> None:
-
         """Switches manager to a new active screen.
 
         Args:

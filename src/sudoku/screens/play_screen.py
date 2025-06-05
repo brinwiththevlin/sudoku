@@ -12,7 +12,7 @@ from pygame import Surface, display
 from sudoku.board import Board
 from sudoku.button import Back, Button
 from sudoku.cell import Cell
-from sudoku.constants import XMARGIN, YMARGIN, THUMB_DIR
+from sudoku.constants import THUMB_DIR, XMARGIN, YMARGIN
 from sudoku.screens.screen import Screen, ScreenEvent
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class PlayScreen(Screen):
         self.board: Board = Board(XMARGIN, YMARGIN, self.font)
         self.back = Back(self.font)
         self.reset = Button(self.back.x, self.back.y + self.back.rect.height, "reset", self.font)
-        self.file_name  = ""
+        self.file_name = ""
 
         self.drawable.add(self.back)
         self.selectable.add(self.back)
@@ -81,6 +81,7 @@ class PlayScreen(Screen):
 
         state = self.board.to_string()
         thumbnail_path = THUMB_DIR / self.data["file_name"].name.replace(".json", ".png")
+        Path.mkdir(THUMB_DIR, exist_ok=True, parents=True)  # Ensure thumbnail directory exists
         with self.data["file_name"].open(mode="r") as f:  # Changed from Path.open to instance method
             data = json.load(f)
             data["current"] = state
@@ -93,8 +94,8 @@ class PlayScreen(Screen):
 
         # Save thumbnail in binary mode
         thumb_surface = pygame.Surface((self.board.rect.width, self.board.rect.height))
-        thumb_surface.fill("white")
-        self.board.relocate(0,0)
+        _ = thumb_surface.fill("white")
+        self.board.relocate(0, 0)
         self.board.draw(thumb_surface)
         pygame.image.save(thumb_surface, str(thumbnail_path))
 
@@ -133,13 +134,12 @@ class PlayScreen(Screen):
                                 self.board.highlight(s.value)
                             elif type(s) is Back:
                                 return ScreenEvent(self.back.name, {})
-                            elif s.name == "reset":
+                            elif type(s) is Button and s.name == "reset":
                                 self.reset_board()
                             break
                     else:
                         self.board.highlight(0)
                 case pygame.KEYDOWN:
-                    keys = pygame.key.get_pressed()
                     if pygame.K_0 <= event.key <= pygame.K_9:
                         digit = event.key - pygame.K_0
                         for s in self.selectable:
@@ -165,6 +165,7 @@ class PlayScreen(Screen):
         self.board.draw(self.window)
 
     def reset_board(self) -> None:
+        """Reset board, set the board to be empty."""
         for cell in self.board:
             if not cell.locked:
                 cell.value = 0

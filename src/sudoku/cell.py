@@ -5,7 +5,7 @@ from typing import final, override
 import pygame
 from pygame.font import Font
 
-from sudoku.constants import INVALID_COLOR, LOCK_COLOR, USER_COLOR, HINT_SIZE
+from sudoku.constants import INVALID_COLOR, LOCK_COLOR, USER_COLOR
 from sudoku.game_sprites import GameSprite
 
 
@@ -55,6 +55,7 @@ class Cell(GameSprite):
     def __hash__(self) -> int:
         return super().__hash__()
 
+    @override
     def __repr__(self):
         return f"Cell({self.value})@({self.x},{self.y})"
 
@@ -85,22 +86,14 @@ class Cell(GameSprite):
         else:
             color = USER_COLOR
 
-        if self.value != 0:
-            text_surf = self.font.render(
-                str(self.value if self.value not in (0, None) else ""),
-                True,  # noqa: FBT003
-                color,
-            )
-            # center it in the cell`s rect
-            text_rect = text_surf.get_rect(center=self.rect.center)
-            _ = screen.blit(text_surf, text_rect)
-        else:
-            #TODO: add draw for hints
-            pass
-            # for row in self.hints:
-            #     for hint in row:
-            #         hint.draw(screen)
-            # pass
+        text_surf = self.font.render(
+            str(self.value if self.value not in (0, None) else ""),
+            True,  # noqa: FBT003
+            color,
+        )
+        # center it in the cell`s rect
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        _ = screen.blit(text_surf, text_rect)
 
     @override
     def update(self, value: int) -> None:
@@ -125,14 +118,3 @@ class Cell(GameSprite):
     def lock(self):
         """Set pre-entered value as locked."""
         self.locked = True
-
-    def __create_hints(self, font: Font) -> list[list["Cell"]]:
-        cells: list[list[Cell]] = [
-            [
-                Cell(self.x + HINT_SIZE * col, self.y + HINT_SIZE * row, HINT_SIZE, HINT_SIZE, font=font)
-                for col in range(9)
-            ]
-            for row in range(9)
-        ]
-        return cells
-

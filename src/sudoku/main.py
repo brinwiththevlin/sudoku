@@ -7,7 +7,7 @@ from pygame import display
 
 from sudoku.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 from sudoku.screen_manager import ScreenManager
-from sudoku.screens import HomeScreen, PlayScreen, LoadScreen, SolverScreen
+from sudoku.screens import HomeScreen, LoadScreen, PlayScreen, SolverScreen
 
 # Set up basic configuration
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ def main() -> None:
         manager.draw()
 
         display.flip()
-        dt = clock.tick() / 1000
+        dt = clock.tick() // 1000
 
 
 if __name__ == "__main__":
