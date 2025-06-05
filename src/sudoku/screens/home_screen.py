@@ -45,6 +45,9 @@ class HomeScreen(Screen):
 
     @override
     def exit(self) -> None:
+        self.updatable.empty()
+        self.drawable.empty()
+        self.selectable.empty()
         logger.info(msg="leaving the main menu")
         name = ""
         for b in self.buttons:

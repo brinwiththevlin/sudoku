@@ -10,9 +10,9 @@ import pygame
 from pygame import Surface, display
 
 from sudoku.board import Board
-from sudoku.button import Back
+from sudoku.button import Back, Button
 from sudoku.cell import Cell
-from sudoku.constants import XMARGIN, YMARGIN
+from sudoku.constants import XMARGIN, YMARGIN, THUMB_DIR
 from sudoku.screens.screen import Screen, ScreenEvent
 
 logger = logging.getLogger(__name__)
@@ -37,9 +37,13 @@ class PlayScreen(Screen):
             self.font = self.fonts.get(resources.get("font", ""), self.fonts["default"])
         self.board: Board = Board(XMARGIN, YMARGIN, self.font)
         self.back = Back(self.font)
+        self.reset = Button(self.back.x, self.back.y + self.back.rect.height, "reset", self.font)
+        self.file_name  = ""
 
         self.drawable.add(self.back)
         self.selectable.add(self.back)
+        self.drawable.add(self.reset)
+        self.selectable.add(self.reset)
         self.drawable.add(self.board)
         for cell in self.board:
             self.drawable.add(cell)
@@ -48,39 +52,51 @@ class PlayScreen(Screen):
 
     @override
     def enter(self, context: dict[str, Any]):
-        """Upon entering load the puzzle.
+        """Upon entering, load the puzzle.
 
         Args:
             context: context needed to load puzzle
 
         Raises:
-            ValueError: if the name is not valid don't load a puzzle.
+            ValueError: if the name is not valid, don't load a puzzle.
         """
         self.data = context
-        # if puzzle.txt exists at project root load it
-        if type(self.data["file_name"]) is not str:
-            raise ValueError("file_name, must be a string")
+        # if puzzle.txt exists at the project root, load it
         if Path(self.data["file_name"]).exists():
             with Path(self.data["file_name"]).open() as f:
                 puzzle = json.load(f)
-                self.board.load(puzzle["current"])
+                self.board.load(puzzle.get("current", puzzle["original"]))
         else:
             raise FileNotFoundError
-        # set title of window
-        display.set_caption(self.data["file_name"].removesuffix(".json"))
+        # set the title of the window
+        self.file_name = Path(self.data["file_name"])
+        display.set_caption(self.file_name.name.removesuffix(".json"))
 
     @override
     def exit(self) -> None:
-        """Exits the play screen. saves before exiting."""
-        # TODO(brinhasavlin): store game file
+        """Exits the play screen. Saves before exiting."""
+        self.updatable.empty()
+        self.drawable.empty()
+        self.selectable.empty()
 
         state = self.board.to_string()
-        with Path.open(self.data["file_name"], mode="r") as f:
+        thumbnail_path = THUMB_DIR / self.data["file_name"].name.replace(".json", ".png")
+        with self.data["file_name"].open(mode="r") as f:  # Changed from Path.open to instance method
             data = json.load(f)
             data["current"] = state
-        with Path.open(self.data["file_name"], mode="w") as f:
+            data["thumbnail"] = str(thumbnail_path)  # Convert Path to string for JSON
+
+        # Write updated data
+        with self.data["file_name"].open(mode="w") as f:  # Changed from Path.open to instance method
             logger.info(data)
             json.dump(data, f)
+
+        # Save thumbnail in binary mode
+        thumb_surface = pygame.Surface((self.board.rect.width, self.board.rect.height))
+        thumb_surface.fill("white")
+        self.board.relocate(0,0)
+        self.board.draw(thumb_surface)
+        pygame.image.save(thumb_surface, str(thumbnail_path))
 
     @override
     def update(self, *args, **kwargs) -> None:
@@ -91,7 +107,7 @@ class PlayScreen(Screen):
         """Handle all game events.
 
         Args:
-            events: list of all pygame envents
+            events: list of all pygame events
 
         Returns:
             a screen change event or nothing.
@@ -100,6 +116,12 @@ class PlayScreen(Screen):
         for event in events:
             match event.type:
                 case pygame.QUIT:
+                    with Path.open(self.data["file_name"], mode="r") as f:
+                        data = json.load(f)
+                        data["current"] = self.board.to_string()
+                    with Path.open(self.data["file_name"], mode="w") as f:
+                        logger.info(data)
+                        json.dump(data, f)
                     sys.exit(0)
                 case pygame.MOUSEBUTTONDOWN:
                     pos = event.pos
@@ -109,16 +131,20 @@ class PlayScreen(Screen):
                             s.select()
                             if type(s) is Cell:
                                 self.board.highlight(s.value)
-                            if type(s) is Back:
+                            elif type(s) is Back:
                                 return ScreenEvent(self.back.name, {})
+                            elif s.name == "reset":
+                                self.reset_board()
                             break
                     else:
                         self.board.highlight(0)
                 case pygame.KEYDOWN:
+                    keys = pygame.key.get_pressed()
                     if pygame.K_0 <= event.key <= pygame.K_9:
                         digit = event.key - pygame.K_0
                         for s in self.selectable:
                             if s.selected:
+                                # s.update(digit, hint = keys[pygame.K_LCTRL])
                                 s.update(digit)
                     if event.key == pygame.K_BACKSPACE:
                         for s in self.selectable:
@@ -130,7 +156,15 @@ class PlayScreen(Screen):
 
     @override
     def draw(self) -> None:
-        """Draw everyting for this screen."""
+        """Draw everything for this screen."""
         _ = self.window.fill("green" if self.board.solved(self.logger) else (200, 10, 50))
-        self.back.draw(self.window)
+        for d in self.drawable:
+            if d is not self.board:
+                d.draw(self.window)
+        # self.back.draw(self.window)
         self.board.draw(self.window)
+
+    def reset_board(self) -> None:
+        for cell in self.board:
+            if not cell.locked:
+                cell.value = 0

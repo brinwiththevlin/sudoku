@@ -5,7 +5,7 @@ from typing import final, override
 import pygame
 from pygame.font import Font
 
-from sudoku.constants import INVALID_COLOR, LOCK_COLOR, USER_COLOR
+from sudoku.constants import INVALID_COLOR, LOCK_COLOR, USER_COLOR, HINT_SIZE
 from sudoku.game_sprites import GameSprite
 
 
@@ -38,6 +38,7 @@ class Cell(GameSprite):
         self.valid = True
         self.reason = False
         self.highlight = True
+        # self.hints = self.__create_hints(self.font)
 
         self.image = pygame.Surface((width, height), flags=pygame.SRCALPHA)
         _ = self.image.fill("white")
@@ -53,6 +54,9 @@ class Cell(GameSprite):
     @override
     def __hash__(self) -> int:
         return super().__hash__()
+
+    def __repr__(self):
+        return f"Cell({self.value})@({self.x},{self.y})"
 
     @override
     def draw(self, screen: pygame.Surface) -> None:
@@ -80,14 +84,23 @@ class Cell(GameSprite):
             color = INVALID_COLOR
         else:
             color = USER_COLOR
-        text_surf = self.font.render(
-            str(self.value if self.value not in (0, None) else ""),
-            True,  # noqa: FBT003
-            color,
-        )
-        # center it in the cell`s rect
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        _ = screen.blit(text_surf, text_rect)
+
+        if self.value != 0:
+            text_surf = self.font.render(
+                str(self.value if self.value not in (0, None) else ""),
+                True,  # noqa: FBT003
+                color,
+            )
+            # center it in the cell`s rect
+            text_rect = text_surf.get_rect(center=self.rect.center)
+            _ = screen.blit(text_surf, text_rect)
+        else:
+            #TODO: add draw for hints
+            pass
+            # for row in self.hints:
+            #     for hint in row:
+            #         hint.draw(screen)
+            # pass
 
     @override
     def update(self, value: int) -> None:
@@ -112,3 +125,14 @@ class Cell(GameSprite):
     def lock(self):
         """Set pre-entered value as locked."""
         self.locked = True
+
+    def __create_hints(self, font: Font) -> list[list["Cell"]]:
+        cells: list[list[Cell]] = [
+            [
+                Cell(self.x + HINT_SIZE * col, self.y + HINT_SIZE * row, HINT_SIZE, HINT_SIZE, font=font)
+                for col in range(9)
+            ]
+            for row in range(9)
+        ]
+        return cells
+
